@@ -1,0 +1,434 @@
+{% extends 'game/base.html' %}
+{% load static %}
+
+{% block title %}Game Board{% endblock %}
+
+{% block content %}
+<!-- Reset Confirmation Modal -->
+<div class="modal fade" id="resetConfirmModal" tabindex="-1" aria-labelledby="resetConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="resetConfirmModalLabel">Confirm Reset</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to hide this category?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmResetBtn">Reset Card</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Card Details Modal -->
+<div class="modal fade" id="cardDetailsModal" tabindex="-1" aria-labelledby="cardDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cardDetailsModalLabel">Category is:</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="category-details text-center mb-4">
+                    <h2 class="category-name-large mb-4"></h2>
+                    <div class="preparation-timer-container">
+                        <h3>Preparation Time</h3>
+                        <div class="timer-display">
+                            <span id="prep-timer-value">30</span>s
+                        </div>
+                        <div class="timer-controls mt-3">
+                            <button class="btn btn-warning btn-lg me-2" id="pauseTimer">
+                                <i class="fas fa-pause"></i> Pause
+                            </button>
+                            <button class="btn btn-success btn-lg" id="resumeTimer">
+                                <i class="fas fa-play"></i> Resume
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="proceedToTimer">Proceed to Timer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-body">
+                <h2 class="text-center mb-4">Choose The Card Number</h2>
+                <div class="row g-3">
+                    {% for card in cards %}
+                        <div class="col-md-2">
+                            <div class="card category-card-container">
+                                <div class="card category-card {% if card.is_revealed %}revealed{% endif %}"
+                                     id="card-{{ card.id }}"
+                                     data-card-id="{{ card.id }}"
+                                     data-card-number="{{ card.number }}">
+                                    <div class="card-content">
+                                        <div class="unrevealed-content" onclick="revealCard({{ card.id }})">
+                                            Card {{ card.number }}
+                                        </div>
+                                    </div>
+                                    <div class="card-back">
+                                        <div class="category-name">{{ card.category.name }}</div>
+                                        <button type="button" class="btn btn-reset-card" onclick="showResetConfirm(event, {{ card.id }})">
+                                            <i class="fas fa-eye-slash"></i> Hide
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+<style>
+.category-card-container {
+    position: relative;
+    border: none;
+    background: transparent;
+    perspective: 1000px;
+}
+
+.category-card {
+    position: relative;
+    height: 140px;
+    border-radius: 10px;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+    overflow: visible;
+    background: transparent;
+}
+
+.category-card.revealed {
+    transform: rotateY(180deg);
+}
+
+.card-content, .card-back {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.card-content {
+    background: #df445c;
+    transform: rotateY(0deg);
+    border-radius: 10px;
+}
+
+.card-back {
+    background: #6b7b8a;
+    transform: rotateY(180deg);
+    border-radius: 10px;
+}
+
+.category-name {
+    font-size: 1.4rem;
+    text-align: center;
+    word-wrap: break-word;
+    max-width: 100%;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+.unrevealed-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--white);
+}
+
+.btn-reset-card {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(107, 123, 138, 0.95);
+    color: var(--white);
+    border: none;
+    padding: 0.5rem;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateY(100%);
+}
+
+.category-card.revealed:hover {
+    background: #5a6978;
+}
+
+.category-card.revealed:hover .btn-reset-card {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Modal Styling */
+.modal-content {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 4px 20px rgba(3, 122, 118, 0.2);
+    background: rgba(255, 255, 255, 0.98);
+}
+
+.modal-header {
+    background: var(--dark-teal);
+    color: var(--white);
+    border-radius: 10px 10px 0 0;
+    padding: 1.5rem;
+}
+
+.modal-header .modal-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: var(--white);
+}
+
+.modal-body {
+    padding: 2rem;
+    color: #2c3e50;
+    font-size: 1.2rem;
+}
+
+#resetConfirmModal .modal-body {
+    font-size: 1.4rem;
+    font-weight: 500;
+    text-align: center;
+    padding: 2rem;
+}
+
+.modal-footer {
+    border-top: none;
+    padding: 1.5rem;
+    background: rgba(3, 122, 118, 0.05);
+    border-radius: 0 0 10px 10px;
+}
+
+.modal-footer .btn {
+    padding: 0.8rem 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Category Details Modal */
+.category-name-large {
+    font-size: 3rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 2rem;
+    color: var(--dark-pink);
+    position: relative;
+    padding: 0.5rem;
+}
+
+.category-name-large::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: var(--light-pink);
+    border-radius: 2px;
+}
+
+.preparation-timer-container {
+    background: rgba(3, 122, 118, 0.05);
+    border-radius: 10px;
+    padding: 2rem;
+    margin-top: 2rem;
+}
+
+.preparation-timer-container h3 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 1.5rem;
+}
+
+.timer-display {
+    font-size: 3.5rem;
+    font-weight: 600;
+    color: var(--dark-pink);
+    margin: 1rem 0;
+}
+
+.timer-controls {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+#pauseTimer, #resumeTimer {
+    padding: 0.5rem 1.5rem;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+#pauseTimer {
+    background: var(--light-pink);
+    color: var(--white);
+    border: none;
+}
+
+#resumeTimer {
+    background: var(--dark-teal);
+    color: var(--white);
+    border: none;
+    display: none;
+}
+
+#pauseTimer:hover, #resumeTimer:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(3, 122, 118, 0.1);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let preparationTimer;
+let secondsLeft = 30;
+let isPaused = false;
+let currentCardId = null;
+let cardDetailsModal;
+
+document.addEventListener('DOMContentLoaded', function() {
+    const resetModal = new bootstrap.Modal(document.getElementById('resetConfirmModal'));
+    cardDetailsModal = new bootstrap.Modal(document.getElementById('cardDetailsModal'));
+    
+    document.getElementById('confirmResetBtn').addEventListener('click', function() {
+        if (currentCardToReset) {
+            resetCard(currentCardToReset);
+            resetModal.hide();
+        }
+    });
+
+    // Timer control buttons
+    document.getElementById('pauseTimer').addEventListener('click', function() {
+        isPaused = true;
+        this.style.display = 'none';
+        document.getElementById('resumeTimer').style.display = 'inline-block';
+    });
+
+    document.getElementById('resumeTimer').addEventListener('click', function() {
+        isPaused = false;
+        this.style.display = 'none';
+        document.getElementById('pauseTimer').style.display = 'inline-block';
+    });
+
+    // Proceed to timer button
+    document.getElementById('proceedToTimer').addEventListener('click', function() {
+        window.location.href = "{% url 'game:timer' %}";
+    });
+});
+
+function showResetConfirm(event, cardId) {
+    event.stopPropagation();
+    currentCardToReset = cardId;
+    const resetModal = new bootstrap.Modal(document.getElementById('resetConfirmModal'));
+    resetModal.show();
+}
+
+function revealCard(cardId) {
+    const cardElement = document.getElementById(`card-${cardId}`);
+    
+    if (cardElement.classList.contains('revealed')) {
+        return;
+    }
+
+    $.ajax({
+        url: `/reveal-card/${cardId}/`,
+        method: 'POST',
+        success: function(response) {
+            if (response.success) {
+                cardElement.classList.add('revealed');
+                // Show the card details modal after the flip animation
+                setTimeout(() => {
+                    showCardDetails(cardId, response.category);
+                }, 600); // Match the transition duration
+            }
+        },
+        error: function() {
+            alert('Failed to reveal card. Please try again.');
+        }
+    });
+}
+
+function showCardDetails(cardId, categoryName) {
+    currentCardId = cardId;
+    document.querySelector('.category-name-large').textContent = categoryName;
+    
+    // Reset and start the preparation timer
+    secondsLeft = 30;
+    isPaused = false;
+    document.getElementById('prep-timer-value').textContent = secondsLeft;
+    document.getElementById('pauseTimer').style.display = 'inline-block';
+    document.getElementById('resumeTimer').style.display = 'none';
+    
+    if (preparationTimer) {
+        clearInterval(preparationTimer);
+    }
+    
+    preparationTimer = setInterval(() => {
+        if (!isPaused && secondsLeft > 0) {
+            secondsLeft--;
+            document.getElementById('prep-timer-value').textContent = secondsLeft;
+            
+            if (secondsLeft === 0) {
+                clearInterval(preparationTimer);
+                document.getElementById('proceedToTimer').style.display = 'inline-block';
+                document.getElementById('pauseTimer').style.display = 'none';
+                document.getElementById('resumeTimer').style.display = 'none';
+            }
+        }
+    }, 1000);
+    
+    cardDetailsModal.show();
+}
+
+function resetCard(cardId) {
+    const cardElement = document.getElementById(`card-${cardId}`);
+    
+    $.ajax({
+        url: `/reset-card/${cardId}/`,
+        method: 'POST',
+        success: function(response) {
+            if (response.success) {
+                cardElement.classList.remove('revealed');
+            }
+        },
+        error: function() {
+            alert('Failed to reset card. Please try again.');
+        }
+    });
+}
+</script>
+{% endblock %} 

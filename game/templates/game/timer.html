@@ -1,0 +1,249 @@
+{% extends 'game/base.html' %}
+
+{% block title %}Timer{% endblock %}
+
+{% block content %}
+<div class="timer-container">
+    <div class="timer-wrapper">
+        <h2 class="timer-title">Game Timer</h2>
+        
+        <div class="timer-display">
+            <span id="minutes">01</span><span class="timer-separator">:</span><span id="seconds">00</span>
+        </div>
+
+        <div class="timer-controls">
+            <button id="start-btn" class="btn btn-success btn-xl" onclick="startTimer()">
+                <i class="fas fa-play"></i> Start
+            </button>
+            <button id="pause-btn" class="btn btn-warning btn-xl" onclick="pauseTimer()" disabled>
+                <i class="fas fa-pause"></i> Pause
+            </button>
+            <button id="reset-btn" class="btn btn-danger btn-xl" onclick="resetTimer()">
+                <i class="fas fa-redo"></i> Reset
+            </button>
+        </div>
+
+        <div class="next-round-container">
+            <a href="{% url 'game:landing' %}" id="next-round-btn" class="btn btn-primary btn-xl" style="display: none;">
+                <i class="fas fa-forward"></i> Next
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+<style>
+.timer-container {
+    min-height: calc(100vh - 180px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.timer-wrapper {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 30px;
+    padding: 3rem;
+    box-shadow: 0 10px 40px rgba(3, 122, 118, 0.2);
+    text-align: center;
+    width: 100%;
+    max-width: 800px;
+    backdrop-filter: blur(10px);
+    border: 3px solid var(--light-pink);
+}
+
+.timer-title {
+    font-size: 3rem;
+    color: var(--white);
+    font-weight: 700;
+    margin-bottom: 2rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 2px 2px 4px rgba(3, 122, 118, 0.3);
+    background: linear-gradient(45deg, var(--white), var(--light-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.timer-display {
+    font-size: 12rem;
+    font-weight: 700;
+    line-height: 1;
+    margin: 2rem 0;
+    font-family: 'Roboto Mono', monospace;
+    background: linear-gradient(135deg, var(--dark-pink), var(--light-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    padding: 2rem;
+    text-shadow: none;
+}
+
+.timer-separator {
+    animation: blink 1s infinite;
+    opacity: 1;
+    color: var(--dark-pink);
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+.timer-controls {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin: 2rem 0;
+}
+
+.btn-xl {
+    padding: 1rem 2.5rem;
+    font-size: 1.5rem;
+    border-radius: 15px;
+    min-width: 180px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: var(--white);
+}
+
+.btn-xl:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(3, 122, 118, 0.2);
+    color: var(--white);
+}
+
+.btn-xl i {
+    font-size: 1.8rem;
+}
+
+.btn-success {
+    background: linear-gradient(45deg, var(--dark-teal), var(--light-teal));
+    border: none;
+}
+
+.btn-success:hover {
+    background: linear-gradient(45deg, var(--light-teal), var(--dark-teal));
+}
+
+.btn-warning {
+    background: linear-gradient(45deg, var(--light-pink), var(--dark-pink));
+    border: none;
+}
+
+.btn-warning:hover {
+    background: linear-gradient(45deg, var(--dark-pink), var(--light-pink));
+}
+
+.btn-danger {
+    background: linear-gradient(45deg, #dc3545, #c82333);
+    border: none;
+}
+
+.next-round-container {
+    margin-top: 2rem;
+}
+
+#next-round-btn {
+    background: linear-gradient(45deg, var(--dark-teal), var(--light-teal));
+    border: none;
+    color: var(--white);
+    font-weight: 600;
+}
+
+#next-round-btn:hover {
+    background: linear-gradient(45deg, var(--light-teal), var(--dark-teal));
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .timer-display {
+        font-size: 8rem;
+    }
+    
+    .timer-controls {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .btn-xl {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .timer-display {
+        font-size: 6rem;
+    }
+    
+    .timer-title {
+        font-size: 2rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let timerInterval;
+let totalSeconds = 60;
+let isRunning = false;
+
+function updateDisplay() {
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    
+    document.getElementById('minutes').textContent = String(minutes).padStart(2, '0');
+    document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
+}
+
+function startTimer() {
+    if (!isRunning) {
+        isRunning = true;
+        document.getElementById('start-btn').disabled = true;
+        document.getElementById('pause-btn').disabled = false;
+        
+        timerInterval = setInterval(() => {
+            if (totalSeconds > 0) {
+                totalSeconds--;
+                updateDisplay();
+            } else {
+                clearInterval(timerInterval);
+                document.getElementById('next-round-btn').style.display = 'inline-block';
+                document.getElementById('pause-btn').disabled = true;
+            }
+        }, 1000);
+    }
+}
+
+function pauseTimer() {
+    if (isRunning) {
+        clearInterval(timerInterval);
+        isRunning = false;
+        document.getElementById('start-btn').disabled = false;
+        document.getElementById('pause-btn').disabled = true;
+    }
+}
+
+function resetTimer() {
+    clearInterval(timerInterval);
+    isRunning = false;
+    totalSeconds = 60;
+    updateDisplay();
+    document.getElementById('start-btn').disabled = false;
+    document.getElementById('pause-btn').disabled = true;
+    document.getElementById('next-round-btn').style.display = 'none';
+}
+
+// Initialize display
+updateDisplay();
+</script>
+{% endblock %} 
