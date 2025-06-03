@@ -58,6 +58,9 @@
     </div>
 </div>
 
+<!-- Add audio element for buzzer sound -->
+<audio id="prep-buzzer-sound" src="{% static 'game/sounds/buzzer.mp3' %}" preload="auto"></audio>
+
 <div class="row mb-4">
     <div class="col-12">
         <div class="card shadow">
@@ -319,10 +322,16 @@ let secondsLeft = 30;
 let isPaused = false;
 let currentCardId = null;
 let cardDetailsModal;
+let prepBuzzer = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     const resetModal = new bootstrap.Modal(document.getElementById('resetConfirmModal'));
     cardDetailsModal = new bootstrap.Modal(document.getElementById('cardDetailsModal'));
+    
+    // Initialize and preload the buzzer sound
+    prepBuzzer = document.getElementById('prep-buzzer-sound');
+    prepBuzzer.load();
+    prepBuzzer.volume = 1.0;
     
     document.getElementById('confirmResetBtn').addEventListener('click', function() {
         if (currentCardToReset) {
@@ -349,6 +358,18 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = "{% url 'game:timer' %}";
     });
 });
+
+function playPrepBuzzerSound() {
+    if (prepBuzzer) {
+        prepBuzzer.currentTime = 0;
+        const playPromise = prepBuzzer.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(function(error) {
+                console.log("Error playing sound:", error);
+            });
+        }
+    }
+}
 
 function showResetConfirm(event, cardId) {
     event.stopPropagation();
@@ -401,6 +422,12 @@ function showCardDetails(cardId, categoryName) {
         if (!isPaused && secondsLeft > 0) {
             secondsLeft--;
             document.getElementById('prep-timer-value').textContent = secondsLeft;
+            
+            // If we're at 1 second remaining, prepare the buzzer
+            if (secondsLeft === 1) {
+                // Schedule the buzzer to play just before the final second
+                setTimeout(playPrepBuzzerSound, 100);
+            }
             
             if (secondsLeft === 0) {
                 clearInterval(preparationTimer);

@@ -4,32 +4,41 @@
 {% block title %}Welcome{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-4">
-        <div class="card main-card logo-card">
-            <div class="card-body text-center">
-                <img src="{% static 'game/images/clash-of-categories.png' %}" alt="Game Logo" class="game-logo">
-                <h1 class="game-title mt-4">Welcome to Clash of Categories</h1>
-                <a href="{% url 'game:game_board' %}" class="btn btn-start-game mt-4">Start Game</a>
+<div class="page-wrapper">
+    <div class="container-fluid h-100 p-0">
+        <div class="row vh-100 g-0">
+            <div class="col-md-4 left-section">
+                <div class="section-content">
+                    <div class="sticky-content">
+                        <img src="{% static 'game/images/clash-of-categories.png' %}" alt="Game Logo" class="game-logo">
+                        <h1 class="game-title">Welcome to<br>Clash of Categories</h1>
+                        <a href="{% url 'game:game_board' %}" class="btn btn-start-game">
+                            <span class="btn-text">Start Game</span>
+                            <span class="btn-shine"></span>
+                        </a>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-    
-    <div class="col-md-8">
-        <div class="card main-card rules-card">
-            <div class="card-body">
-                <h2 class="rules-title text-center mb-4">Game Rules</h2>
-                <div class="rules-container">
-                    <ul class="list-group rules-list">
+
+            <div class="col-md-8 right-section">
+                <div class="section-content">
+                    <h2 class="rules-title text-center">Game Rules</h2>
+                    <div class="rules-grid">
                         {% for rule in rules %}
-                            <li class="list-group-item">
-                                <span class="rule-number">{{ forloop.counter }}</span>
-                                {{ rule.content }}
-                            </li>
+                            <div class="rule-card">
+                                <div class="rule-card-inner">
+                                    <div class="card-content">
+                                        <h3 class="rule-card-title">{{ rule.title }}</h3>
+                                        <p class="rule-card-description">{{ rule.description }}</p>
+                                    </div>
+                                </div>
+                            </div>
                         {% empty %}
-                            <li class="list-group-item">No rules have been added yet.</li>
+                            <div class="col-12 text-center">
+                                <p class="no-rules">No rules have been added yet.</p>
+                            </div>
                         {% endfor %}
-                    </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -39,126 +48,360 @@
 
 {% block extra_css %}
 <style>
-.logo-card {
-    position: sticky;
-    top: 2rem;
+:root {
+    --primary-color: #2C3E50;
+    --secondary-color: #3498DB;
+    --accent-color: #E74C3C;
+    --background-dark: #1a1c2e;
+    --background-light: #2a2c3e;
+    --text-light: #ECF0F1;
+    --text-dark: #2C3E50;
+    --card-gradient-1: #2980B9;
+    --card-gradient-2: #3498DB;
+    --border-color: rgba(255, 255, 255, 0.1);
+}
+
+body {
+    background: var(--background-dark);
+    color: var(--text-light);
+    height: 100vh;
+    overflow: hidden;
+}
+
+.page-wrapper {
+    height: 100vh;
+    background: linear-gradient(135deg, var(--background-dark) 0%, var(--background-light) 100%);
+}
+
+.container-fluid {
+    max-width: 1920px;
+    margin: 0 auto;
+}
+
+.vh-100 {
+    height: 100vh !important;
+}
+
+.g-0 {
+    --bs-gutter-x: 0;
+}
+
+.left-section {
+    height: 100vh;
+    border-right: 1px solid var(--border-color);
+    position: relative;
+}
+
+.right-section {
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.03);
+    position: relative;
+}
+
+.section-content {
+    height: 100%;
+    padding: 2vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.left-section .section-content {
+    align-items: center;
+    justify-content: center;
+    padding: 4vh;
+}
+
+.right-section .section-content {
+    padding: 3vh;
+}
+
+.sticky-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3vh;
+    padding: 2vh;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
 }
 
 .game-logo {
     width: 100%;
     height: auto;
-    max-width: 300px;
+    max-width: min(250px, 25vw);
     border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease;
+    box-shadow: 0 5px 25px rgba(52, 152, 219, 0.3);
+    transition: all 0.3s ease;
 }
 
 .game-logo:hover {
     transform: scale(1.05);
+    box-shadow: 0 8px 35px rgba(52, 152, 219, 0.5);
 }
 
 .game-title {
-    font-size: 1.8rem;
-    color: #2c3e50;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.rules-card {
-    min-height: calc(100vh - 180px);
-}
-
-.rules-container {
-    max-height: calc(100vh - 280px);
-    overflow-y: auto;
-    padding-right: 10px;
-}
-
-.rules-container::-webkit-scrollbar {
-    width: 8px;
-}
-
-.rules-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-.rules-container::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
-}
-
-.rules-container::-webkit-scrollbar-thumb:hover {
-    background: #555;
+    font-size: min(2.4rem, 3vw);
+    color: var(--text-light);
+    font-weight: 800;
+    text-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+    text-align: center;
+    margin: 0;
 }
 
 .rules-title {
-    color: #2c3e50;
-    font-weight: 600;
-    font-size: 2rem;
-    position: sticky;
-    top: 0;
-    background: white;
-    padding: 1rem 0;
-    margin: -1rem 0 1rem 0;
-    border-bottom: 2px solid #f8f9fa;
+    color: var(--text-light);
+    font-weight: 700;
+    font-size: min(2rem, 3vw);
+    margin: 0 0 3vh 0;
+    text-shadow: 0 0 10px rgba(52, 152, 219, 0.3);
+    position: relative;
 }
 
-.rules-list {
-    border-radius: 10px;
+.rules-title::after {
+    content: '';
+    position: absolute;
+    bottom: -0.8vh;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--card-gradient-1), var(--card-gradient-2));
+    border-radius: 2px;
+}
+
+.rules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(250px, 30%), 1fr));
+    gap: 2vh;
+    padding: 1vh;
+    height: calc(100% - 8vh);
+    overflow-y: auto;
+    align-content: start;
+}
+
+.rules-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.rules-grid::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.rules-grid::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.rules-grid::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.rule-card {
+    aspect-ratio: 1.2;
+}
+
+.rule-card-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    border-radius: 15px;
+    padding: 2vh;
+    box-shadow: 0 4px 25px rgba(0, 0, 0, 0.2);
+    transition: transform 0.6s, box-shadow 0.3s;
+    background: linear-gradient(135deg, rgba(41, 128, 185, 0.9), rgba(52, 152, 219, 0.9));
     overflow: hidden;
+    border: 1px solid var(--border-color);
 }
 
-.list-group-item {
-    border: none;
-    background: #f8f9fa;
-    padding: 1.2rem 1.5rem;
-    margin-bottom: 0.5rem;
-    border-radius: 8px !important;
-    transition: all 0.3s ease;
+.rule-card-inner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+    border-radius: 15px;
+}
+
+.card-content {
+    position: relative;
+    z-index: 1;
+    height: 100%;
     display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-}
-
-.list-group-item:hover {
-    background: #e9ecef;
-    transform: translateX(5px);
-}
-
-.rule-number {
-    background: #007bff;
-    color: white;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
+    flex-direction: column;
     justify-content: center;
-    font-weight: 600;
-    flex-shrink: 0;
+    align-items: center;
+    text-align: center;
+}
+
+.rule-card:hover .rule-card-inner {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 8px 35px rgba(0, 0, 0, 0.3);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.rule-card-title {
+    font-size: min(1.4rem, 2vw);
+    color: var(--text-light);
+    font-weight: 700;
+    margin-bottom: 1.5vh;
+    position: relative;
+    padding-bottom: 1vh;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.rule-card-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 2px;
+    background: var(--text-light);
+    border-radius: 1px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+.rule-card-description {
+    color: var(--text-light);
+    font-size: min(1.1rem, 1.6vw);
+    line-height: 1.4;
+    margin: 0;
+    font-weight: 400;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .btn-start-game {
-    background: linear-gradient(45deg, #3498db 0%, #2ecc71 100%);
+    background: linear-gradient(45deg, var(--accent-color) 0%, #F39C12 100%);
     border: none;
-    padding: 1rem 2.5rem;
-    font-size: 1.2rem;
-    font-weight: 600;
+    padding: 1.5vh 3vw;
+    font-size: min(1.2rem, 2vw);
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
     border-radius: 50px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 25px rgba(231, 76, 60, 0.4);
     transition: all 0.3s ease;
-    width: 100%;
-    max-width: 250px;
+    color: var(--text-light);
+    text-decoration: none;
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-start-game .btn-text {
+    position: relative;
+    z-index: 1;
+}
+
+.btn-start-game .btn-shine {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+    );
+    transform: rotate(45deg);
+    transition: 0.5s;
 }
 
 .btn-start-game:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
-    background: linear-gradient(45deg, #2ecc71 0%, #3498db 100%);
+    box-shadow: 0 6px 30px rgba(231, 76, 60, 0.6);
+    color: var(--text-light);
+}
+
+.btn-start-game:hover .btn-shine {
+    left: 100%;
+}
+
+.no-rules {
+    font-size: min(1.2rem, 2vw);
+    color: var(--text-light);
+    padding: 2vh;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    text-align: center;
+    backdrop-filter: blur(5px);
+    border: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+    body {
+        overflow-y: auto;
+    }
+
+    .vh-100 {
+        min-height: 100vh;
+        height: auto !important;
+    }
+
+    .left-section {
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .right-section {
+        height: auto;
+        min-height: 60vh;
+    }
+
+    .section-content {
+        padding: 4vh 3vh;
+    }
+
+    .sticky-content {
+        padding: 3vh;
+    }
+
+    .rules-grid {
+        height: auto;
+        max-height: none;
+        overflow-y: visible;
+        grid-template-columns: 1fr;
+        gap: 3vh;
+    }
+
+    .game-logo {
+        max-width: 200px;
+    }
+
+    .game-title {
+        font-size: 1.8rem;
+    }
+
+    .rules-title {
+        font-size: 1.6rem;
+        margin-bottom: 4vh;
+    }
+
+    .rule-card-title {
+        font-size: 1.3rem;
+    }
+
+    .rule-card-description {
+        font-size: 1rem;
+    }
+
+    .btn-start-game {
+        padding: 1.5vh 6vw;
+        font-size: 1.1rem;
+    }
 }
 </style>
 {% endblock %} 

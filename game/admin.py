@@ -3,8 +3,8 @@ from .models import Rule, Category, Team, Card
 
 @admin.register(Rule)
 class RuleAdmin(admin.ModelAdmin):
-    list_display = ('order', 'content')
-    ordering = ['order']
+    list_display = ('title', 'description')
+    search_fields = ['title']
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):

@@ -1,4 +1,5 @@
 {% extends 'game/base.html' %}
+{% load static %}
 
 {% block title %}Timer{% endblock %}
 
@@ -30,6 +31,10 @@
         </div>
     </div>
 </div>
+
+<!-- Add audio element for buzzer sound -->
+<audio id="buzzer-sound" src="{% static 'game/sounds/buzzer.mp3' %}" preload="auto"></audio>
+
 {% endblock %}
 
 {% block extra_css %}
@@ -196,6 +201,17 @@
 let timerInterval;
 let totalSeconds = 60;
 let isRunning = false;
+let buzzer = null;
+let lastTimestamp = 0;
+let accumulatedTime = 0;
+
+// Preload the buzzer sound when the page loads
+document.addEventListener('DOMContentLoaded', function() {
+    buzzer = document.getElementById('buzzer-sound');
+    // Preload the audio and set volume to max
+    buzzer.load();
+    buzzer.volume = 1.0;
+});
 
 function updateDisplay() {
     const minutes = Math.floor(totalSeconds / 60);
@@ -205,28 +221,68 @@ function updateDisplay() {
     document.getElementById('seconds').textContent = String(seconds).padStart(2, '0');
 }
 
+function playBuzzerSound() {
+    if (buzzer) {
+        buzzer.currentTime = 0;
+        const playPromise = buzzer.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(function(error) {
+                console.log("Error playing sound:", error);
+            });
+        }
+    }
+}
+
+function timerTick(timestamp) {
+    if (!lastTimestamp) lastTimestamp = timestamp;
+    
+    const elapsed = timestamp - lastTimestamp;
+    accumulatedTime += elapsed;
+    
+    if (accumulatedTime >= 1000) {
+        if (totalSeconds > 0) {
+            totalSeconds--;
+            
+            // If we're at 1 second remaining, prepare the buzzer
+            if (totalSeconds === 1) {
+                // Schedule the buzzer to play just before the final second
+                setTimeout(playBuzzerSound, 100);
+            }
+            
+            updateDisplay();
+            accumulatedTime = accumulatedTime % 1000; // Keep remainder for next frame
+        } else {
+            isRunning = false;
+            document.getElementById('next-round-btn').style.display = 'inline-block';
+            document.getElementById('pause-btn').disabled = true;
+            return; // Stop the animation frame loop
+        }
+    }
+    
+    lastTimestamp = timestamp;
+    
+    if (isRunning) {
+        requestAnimationFrame(timerTick);
+    }
+}
+
 function startTimer() {
     if (!isRunning) {
         isRunning = true;
         document.getElementById('start-btn').disabled = true;
         document.getElementById('pause-btn').disabled = false;
         
-        timerInterval = setInterval(() => {
-            if (totalSeconds > 0) {
-                totalSeconds--;
-                updateDisplay();
-            } else {
-                clearInterval(timerInterval);
-                document.getElementById('next-round-btn').style.display = 'inline-block';
-                document.getElementById('pause-btn').disabled = true;
-            }
-        }, 1000);
+        // Reset timing variables
+        lastTimestamp = 0;
+        accumulatedTime = 0;
+        
+        // Start the high-precision timer loop
+        requestAnimationFrame(timerTick);
     }
 }
 
 function pauseTimer() {
     if (isRunning) {
-        clearInterval(timerInterval);
         isRunning = false;
         document.getElementById('start-btn').disabled = false;
         document.getElementById('pause-btn').disabled = true;
@@ -234,9 +290,10 @@ function pauseTimer() {
 }
 
 function resetTimer() {
-    clearInterval(timerInterval);
     isRunning = false;
     totalSeconds = 60;
+    lastTimestamp = 0;
+    accumulatedTime = 0;
     updateDisplay();
     document.getElementById('start-btn').disabled = false;
     document.getElementById('pause-btn').disabled = true;

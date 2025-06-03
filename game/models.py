@@ -3,14 +3,11 @@ from django.db import models
 # Create your models here.
 
 class Rule(models.Model):
-    content = models.TextField()
-    order = models.IntegerField(default=0)
-
-    class Meta:
-        ordering = ['order']
+    title = models.CharField(max_length=200, default="Game Rule")
+    description = models.TextField(default="Rule description")
 
     def __str__(self):
-        return f"Rule #{self.order}"
+        return self.title
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
